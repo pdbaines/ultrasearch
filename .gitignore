@@ -1,0 +1,10 @@
+.idea/
+.swp*
+*~
+*.pyc
+__pycache__*
+.vscode
+.mypy_cache
+docker-stack.yml
+.env
+supabase/
