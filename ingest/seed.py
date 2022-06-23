@@ -12,6 +12,7 @@ def seed_distance_units():
 def seed_sources():
     client = connect()
     client.table("sources").upsert({"id": 1, "name": "UltraSignup", "base_url": "ultrasignup.com"}).execute()
+    client.table("sources").upsert({"id": 2, "name": "Ahotu", "base_url": "ahotu.com"}).execute()
     return
 
 if __name__ == "__main__":

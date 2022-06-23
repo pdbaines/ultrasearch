@@ -62,6 +62,8 @@ def distance_extract(x: str) -> Optional[UnitValuePair]:
         if group in [".", ""]:
             continue
         unit = group
+    if unit is None:
+        return
     if not len(lgroups):
         return
     for group in lgroups:
