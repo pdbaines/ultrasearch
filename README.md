@@ -63,39 +63,12 @@ Example output:
    }
 ```
 
-#
-# Ingest adapters from sources
-# Ingest runs on schedule
-# Ingested to database (supabase)
-# Searchable layer on database
-# Ingest adds new row when changes are detected
-# Prior versions are retained for posterity
+## Project TODO List
 
-# Ultrasignup
-# MarathonGuide.com
-# runningintheusa
-# https://utmb.world/utmb-world-series-events
-# curl "https://www.ahotu.com/advanced-search.json?language=en&zoom[]=68.78414378041504&zoom[]=52.3828125&zoom[]=1.2303741774326145&zoom[]=-139.92187500000003&activity[]=run&page=22"
+* Ingest runs on schedule
+* Searchable layer on database
 
-#
-#
-# Parsed:
-# - id
-# - source
-# - EventName
-# - EventType
-# - EventWebsite
-# - EventImages
-# - EventDate
-# - EventDateEnd
-# - EventDateOriginal
-# - EventDistances
-# - Cancelled
-# - Postponed
-# - Location
-# - City
-# - State
-# - Latitude
-# - Longitude
-# - VirtualEvent
-# -
+Potential additional sources:
+* MarathonGuide.com
+* runningintheusa
+* https://utmb.world/utmb-world-series-events
