@@ -183,7 +183,14 @@ class AhotuIngest(Ingest):
         # }
 
         # API has pagination :)
-        response = httpx.get(self.url, params=params)
+
+        # TODO: timeouts and retries:
+        try:
+            response = httpx.get(self.url, params=params)
+        except Exception as e:
+            log.info(f"Failed to fetch data from {self.url}")
+            raise e
+
         tmp = response.json()
         responses = []
         total_pages = tmp["total_pages"]

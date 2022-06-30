@@ -17,6 +17,13 @@ psql 'postgresql://postgres:postgres@localhost:54322/postgres'
 make build
 ```
 
+## Running the ingest jobs
+
+Set the required environment variables (`source .env`), then:
+```
+python run_ingest.py
+```
+
 ## API Exploration
 
 ### Ultrasignup
