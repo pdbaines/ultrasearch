@@ -24,6 +24,14 @@ Set the required environment variables (`source .env`), then:
 python run_ingest.py
 ```
 
+## CLI usage
+
+```
+ultrasearch fetch --source <source> --params <params> --output <output>
+ultrasearch parse --source <source> --params <params> --output <output>
+ultrasearch upload --source <source>
+```
+
 ## API Exploration
 
 ### Ultrasignup
