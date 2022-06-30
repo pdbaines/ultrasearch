@@ -1,0 +1,45 @@
+
+class Event:
+
+    def __init__(self, **params):
+        # Columns to present in public schema:
+        self.__schema = [
+            "source_id",
+            "name",
+            "start_date",
+            "city",
+            "state",
+            "country",
+            "url",
+            "virtual",
+            "latitude",
+            "longitude"
+        ]
+        self.__dict__.update(params)
+
+    @property
+    def city(self):
+        return self.__dict__["city"]
+
+    @property
+    def country(self):
+        return self.__dict__["country"]
+
+    @property
+    def state(self):
+        return self.__dict__["state"]
+
+    @property
+    def start_date(self):
+        return self.__dict__["start_date"]
+
+    @property
+    def name(self):
+        return self.__dict__["name"]
+
+    @property
+    def distances(self):
+        return self.__dict__["distances"]
+
+    def todict(self, schema: bool = False):
+        return self.__dict__ if not schema else {k: v for k, v in self.__dict__.items() if k in self.__schema}

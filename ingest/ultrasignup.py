@@ -2,15 +2,14 @@ import copy
 import logging as log
 import os
 import time
+from typing import List, Dict
 
 import httpx
 from supabase import Client
 
+from events import Event
 from ingest.ingest import Ingest
 from ingest.parser import distance_parser, distance_extract, identity
-
-
-
 
 
 class UltrasignupIngest(Ingest):
@@ -32,7 +31,7 @@ class UltrasignupIngest(Ingest):
             "name": ("EventName", identity),
             "event_foreign_id": ("EventId", identity),
             "url": ("EventWebsite", identity),
-            "start_date": ("start_date", identity),
+            "start_date": ("EventDate", identity),
             "distances": ("Distances", distance_parser),
             "country": (None, identity),
             "city": ("City", identity),
@@ -42,7 +41,7 @@ class UltrasignupIngest(Ingest):
             "virtual": ("VirtualEvent", identity)
         }
 
-    def fetch(self, interval=1) -> None:
+    def fetch(self, interval=1) -> List[Dict]:
         """
         TODO: Return iterable for batching fetch, parse, upload
         TODO: Cache each fetch to blob storage
@@ -59,7 +58,7 @@ class UltrasignupIngest(Ingest):
         }
         # API only returns max 100 with no pagination :(
         # Iterate over months and distance pairs:
-        responses = []
+        response_ctr = 0
         for month in params["m"]:
             for dist in params["dist"]:
                 log.info(f"Fetching month {month} and distance {dist}...")
@@ -73,20 +72,17 @@ class UltrasignupIngest(Ingest):
                     raise InternalError(
                         f"Ultrasignup API returned more than 100 events for "
                         "month {month} and distance {dist}")
-                responses.extend(response.json())
+                tmp_response = response.json()
+                response_ctr += len(tmp_response)
+                yield tmp_response
                 # Optional: sleep for interval seconds to be polite
                 if interval:
                     time.sleep(interval)
-        self.data = responses
-        log.info(f"Fetched {len(self.data)} events")
-        return
+        log.info(f"Fetched {response_ctr} events")
 
-    def parse(self) -> None:
-        if not self.data:
-            raise Exception(
-                "Please call '.fetch() before running .parse()")
+    def parse(self, batch: List[Dict]) -> List[Event]:
         tmp_parsed_data = []
-        for event in self.data:
+        for event in batch:
             parsed_event = {}
             for key, value in self.__schema_mapping.items():
                 if value[0] is None:
@@ -96,45 +92,44 @@ class UltrasignupIngest(Ingest):
                     # Remap the field:
                     parsed_event[key] = value[1](event[value[0]])
             tmp_parsed_data.append(parsed_event)
-        self.parsed_data = tmp_parsed_data
-        return
+        return [Event(**tmp_event) for tmp_event in tmp_parsed_data]
 
-    def upload(self, client: Client):
+    def upload(self, parsed_batch: List[Event], client: Client):
         # Go event-by-event for now:
         new_events = 0
         new_distances = 0
-        for event in self.parsed_data:
+        for event in parsed_batch:
             # Check if the event already exists (event_foreign_id is not unique)
-            event_distances = event.pop("distances")
+            event_distances = event.distances
             echeck = client.table("events").select("id").match(
                 {
-                    "name": event["name"],
-                    "start_date": event["start_date"],
-                    "city": event["city"],
-                    "state": event["state"]
+                    "name": event.name,
+                    "start_date": event.start_date,
+                    "city": event.city,
+                    "state": event.state
                 }
             ).execute()
             # If it does, then diff it, it has changes, then update
             if not len(echeck.data):
                 # If it does not, then insert it
                 log.info(
-                    f"Event: {event['name']} in {event['city']}, "
-                    f"{event['state']} on {event['start_date']} detected")
-                out = client.table("events").insert(event).execute()
+                    f"Event: {event.name} in {event.city}, "
+                    f"{event.state} on {event.start_date} detected")
+                out = client.table("events").insert(event.todict(schema=True)).execute()
                 new_events += 1
             else:
                 # It already exists, pass for now, later check
                 log.info(
-                    f"Event: {event['name']} in {event['city']}, "
-                    f"{event['state']} on {event['start_date']} already found")
+                    f"Event: {event.name} in {event.city}, "
+                    f"{event.state} on {event.start_date} already found")
             # Now, the event exists, time to process the distances:
             # First, get the event id:
             event_id_response = client.table("events").select("id").match(
                 {
-                    "name": event["name"],
-                    "start_date": event["start_date"],
-                    "city": event["city"],
-                    "state": event["state"]
+                    "name": event.name,
+                    "start_date": event.start_date,
+                    "city": event.city,
+                    "state": event.state
                 }
             ).execute()
             event_id = event_id_response.data[0]["id"]

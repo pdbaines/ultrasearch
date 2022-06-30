@@ -24,6 +24,21 @@ Set the required environment variables (`source .env`), then:
 python run_ingest.py
 ```
 
+## CLI usage
+
+```
+ultrasearch fetch --source <source> --params <params> --output <output>
+ultrasearch parse --source <source> --params <params> --output <output>
+ultrasearch upload --source <source>
+```
+
+## Profiling
+
+```
+python -m cProfile -o ingest.prof run_ingest.py
+snakeviz ingest.prof
+```
+
 ## API Exploration
 
 ### Ultrasignup

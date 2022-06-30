@@ -10,6 +10,7 @@ from supabase import Client
 from ingest.ingest import Ingest
 from ingest.parser import distance_extract, identity
 
+from events import Event
 
 def not_on_site(x: str) -> bool:
     return x != "on_site"
@@ -88,7 +89,7 @@ class AhotuIngest(Ingest):
             "source_id": 2
         }
 
-    def fetch(self, interval=1, max_pages=None) -> None:
+    def fetch(self, interval=1, max_pages=None) -> List[Dict]:
         """
         TODO: Return iterable for batching fetch, parse, upload
         TODO: Cache each fetch to blob storage
@@ -192,7 +193,7 @@ class AhotuIngest(Ingest):
             raise e
 
         tmp = response.json()
-        responses = []
+        event_ctr = 0
         total_pages = tmp["total_pages"]
         max_pages_bound = \
             total_pages + 1 if max_pages is None else \
@@ -203,21 +204,19 @@ class AhotuIngest(Ingest):
             tmp_params = copy.deepcopy(params)
             params["page"] = page
             response = httpx.get(self.url, params=tmp_params)
-            tmp = response.json()
-            responses.extend(response.json()["races"])
             if interval:
                 time.sleep(interval)
-        self.data = responses
-        log.info(f"Fetched {len(self.data)} events")
+            tmp_events = response.json()["races"]
+            event_ctr += len(tmp_events)
+            yield tmp_events
+
+        log.info(f"Fetched {event_ctr} events")
         return
 
-    def parse(self) -> None:
+    def parse(self, batch: List[Dict]) -> List[Event]:
         log.info("Parsing events...")
-        if not self.data:
-            raise Exception(
-                "Please call '.fetch() before running .parse()")
         tmp_parsed_data = []
-        for event in self.data:
+        for event in batch:
             parsed_event = {}
             for key, value in self.__schema_mapping.items():
                 if value[0] is None:
@@ -227,50 +226,49 @@ class AhotuIngest(Ingest):
                     # Remap the field:
                     parsed_event[key] = value[1](event[value[0]])
             tmp_parsed_data.append(parsed_event)
-        self.parsed_data = tmp_parsed_data
-        log.info(f"Successfully parsed {len(self.parsed_data)} events")
-        return
+        log.info(f"Successfully parsed {len(tmp_parsed_data)} events")
+        return [Event(**event) for event in tmp_parsed_data]
 
-    def upload(self, client: Client):
+    def upload(self, parsed_batch: List[Event], client: Client):
         # Go event-by-event for now:
         new_events = 0
         new_distances = 0
-        for event in self.parsed_data:
+        for event in parsed_batch:
             # Check if the event already exists (event_foreign_id is not unique)
             # Skip virtual events for now as we need locations:
-            if (event["city"] is None) and (event["country"] is None):
+            if (event.city is None) and (event.country is None):
                 log.info("Skipping locationless event...")
                 continue
-            event_distances = event.pop("distances")
+            event_distances = event.distances
             echeck = client.table("events").select("id").match(
                 {
-                    "name": event["name"],
-                    "start_date": event["start_date"],
-                    "city": event["city"],
-                    "country": event["country"]
+                    "name": event.name,
+                    "start_date": event.start_date,
+                    "city": event.city,
+                    "country": event.country
                 }
             ).execute()
             # If it does, then diff it, it has changes, then update
             if not len(echeck.data):
                 # If it does not, then insert it
                 log.info(
-                    f"Event: {event['name']} in {event['city']}, "
-                    f"{event['country']} on {event['start_date']} detected")
-                out = client.table("events").insert(event).execute()
+                    f"Event: {event.name} in {event.city}, "
+                    f"{event.country} on {event.start_date} detected")
+                out = client.table("events").insert(event.todict(schema=True)).execute()
                 new_events += 1
             else:
                 # It already exists, pass for now, later check
                 log.info(
-                    f"Event: {event['name']} in {event['city']}, "
-                    f"{event['country']} on {event['start_date']} already found")
+                    f"Event: {event.name} in {event.city}, "
+                    f"{event.country} on {event.start_date} already found")
             # Now, the event exists, time to process the distances:
             # First, get the event id:
             event_id_response = client.table("events").select("id").match(
                 {
-                    "name": event["name"],
-                    "start_date": event["start_date"],
-                    "city": event["city"],
-                    "country": event["country"]
+                    "name": event.name,
+                    "start_date": event.start_date,
+                    "city": event.city,
+                    "country": event.country
                 }
             ).execute()
             event_id = event_id_response.data[0]["id"]

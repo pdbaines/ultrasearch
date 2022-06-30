@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 import logging as log
+from typing import List, Dict
 
 from supabase import Client
 
+from events import Event
 
 log.basicConfig(level=log.INFO)
 
@@ -14,11 +16,11 @@ class InternalError(Exception):
 class Ingest(ABC):
 
     @abstractmethod
-    def fetch(self) -> None:
+    def fetch(self) -> List[Dict]:
         pass
 
     @abstractmethod
-    def parse(self) -> None:
+    def parse(self, batch: List[Dict]) -> List[Event]:
         pass
 
     @abstractmethod
