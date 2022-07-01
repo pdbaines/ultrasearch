@@ -17,6 +17,14 @@ class Event:
         ]
         self.__dict__.update(params)
 
+        # Validation:
+        if self.latitude is not None:
+            if self.latitude < -90 or self.latitude > 90:
+                self.__dict__["latitude"] = self.__dict__["latitude"] % 90
+        if self.longitude is not None:
+            if self.longitude < -180 or self.longitude > 180:
+                self.__dict__["longitude"] = self.__dict__["longitude"] % 180
+
     @property
     def city(self):
         return self.__dict__["city"]

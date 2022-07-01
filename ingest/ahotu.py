@@ -203,7 +203,12 @@ class AhotuIngest(Ingest):
             log.info(f"Fetching page {page}/{total_pages}...")
             tmp_params = copy.deepcopy(params)
             params["page"] = page
-            response = httpx.get(self.url, params=tmp_params)
+            # TODO: cache the request and avoid re-querying
+            try:
+                response = httpx.get(self.url, params=tmp_params)
+            except Exception as e:
+                log.info(f"Failed to fetch data from {self.url} (page={page})")
+                raise e
             if interval:
                 time.sleep(interval)
             tmp_events = response.json()["races"]
@@ -240,6 +245,8 @@ class AhotuIngest(Ingest):
                 log.info("Skipping locationless event...")
                 continue
             event_distances = event.distances
+
+            # Query for the event distances at the same time, to avoid multiple db queries:
             echeck = client.table("events").select("id").match(
                 {
                     "name": event.name,
@@ -248,6 +255,7 @@ class AhotuIngest(Ingest):
                     "country": event.country
                 }
             ).execute()
+
             # If it does, then diff it, it has changes, then update
             if not len(echeck.data):
                 # If it does not, then insert it
@@ -256,13 +264,17 @@ class AhotuIngest(Ingest):
                     f"{event.country} on {event.start_date} detected")
                 out = client.table("events").insert(event.todict(schema=True)).execute()
                 new_events += 1
+                # Can we get the id of the inserted event?
+                # event_id = out.data[0]["id"]
             else:
                 # It already exists, pass for now, later check
                 log.info(
                     f"Event: {event.name} in {event.city}, "
                     f"{event.country} on {event.start_date} already found")
+
             # Now, the event exists, time to process the distances:
             # First, get the event id:
+            # We should already have this... remove it later:
             event_id_response = client.table("events").select("id").match(
                 {
                     "name": event.name,
@@ -272,8 +284,11 @@ class AhotuIngest(Ingest):
                 }
             ).execute()
             event_id = event_id_response.data[0]["id"]
-            # Each distance is a separate event
 
+            # Each distance is a separate event
+            # Skip if null:
+            if event_distances is None:
+                continue
             for event_distance in event_distances:
                 # Do we have this distance already?
                 dist = distance_extract(event_distance)
@@ -305,6 +320,8 @@ class AhotuIngest(Ingest):
                     }).execute()
                     new_distances += 1
                     # Validate the insert
+            # End of event distances handling, loop has been continued
+            # to the next event so no additional handling should be done
         # Summarize:
         log.info(f"Inserted {new_events} new events")
         log.info(f"Inserted {new_distances} new distances")
