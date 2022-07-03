@@ -13,3 +13,6 @@ run:
 
 tag:
 	docker tag ${BASE}/${PROJECT}:${VERSION} ${PROJECT}
+
+compose-run:
+	docker-compose exec console python run_celery.py

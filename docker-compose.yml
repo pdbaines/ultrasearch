@@ -17,6 +17,8 @@ services:
   worker:
     image: ultrasearch
     command: ['celery', '-A', 'ingest.tasks', 'worker', '-l', 'info']
+    env_file:
+      - .env
     environment:
       - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
       - RESULT_BACKEND=redis://redis:6379/0
@@ -33,3 +35,12 @@ services:
       - worker
     ports:
       - "5555:5555"
+
+  console:
+    image: ultrasearch
+    command: sleep 1000
+    env_file:
+      - .env
+    environment:
+      - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
+      - RESULT_BACKEND=redis://redis:6379/0

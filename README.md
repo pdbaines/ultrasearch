@@ -38,6 +38,14 @@ celery -A ingest.tasks worker -l INFO
 # Run job:
 python run_celery.py
 ```
+Dockerized:
+```
+docker-compose up
+docker-compose exec console run_celery.py
+
+# Or just:
+make compose-run
+```
 
 ## CLI usage
 
