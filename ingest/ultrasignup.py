@@ -28,12 +28,16 @@ class UltrasignupRequest(UltraRequest):
 
         :return:
         """
-        tmp = httpx.get(self.url, params=self.params).json()
-        if len(tmp) == 100:
-            raise InternalError(
+        return fetch_data(self.url, self.params)
+
+
+def fetch_data(url, request_params) -> Dict:
+    tmp = httpx.get(url, params=request_params).json()
+    if len(tmp) == 100:
+        raise InternalError(
             f"Ultrasignup API returned more than 100 events for "
             "month {month} and distance {dist}")
-        return tmp
+    return tmp
 
 
 class UltrasignupIngest(Ingest):

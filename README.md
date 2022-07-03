@@ -29,6 +29,16 @@ Set the required environment variables (`source .env`), then:
 python run_ingest.py
 ```
 
+### Running with celery
+
+```
+# Start workers:
+celery -A ingest.tasks worker -l INFO
+
+# Run job:
+python run_celery.py
+```
+
 ## CLI usage
 
 ```
