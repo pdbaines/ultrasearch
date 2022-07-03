@@ -1,6 +1,7 @@
 .idea/
 .swp*
 *~
+*.log
 *.pyc
 *.prof
 __pycache__*

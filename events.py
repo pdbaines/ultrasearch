@@ -18,6 +18,8 @@ class Event:
         self.__dict__.update(params)
 
         # Validation:
+        self.latitude = float(self.latitude) if (self.latitude is not None) else None
+        self.longitude = float(self.longitude) if (self.longitude is not None) else None
         if self.latitude is not None:
             if self.latitude < -90 or self.latitude > 90:
                 self.__dict__["latitude"] = self.__dict__["latitude"] % 90

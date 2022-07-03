@@ -5,6 +5,7 @@ from typing import List, Dict
 from supabase import Client
 
 from events import Event
+from ingest.ultrarequest import UltraRequest
 
 log.basicConfig(level=log.INFO)
 
@@ -16,7 +17,7 @@ class InternalError(Exception):
 class Ingest(ABC):
 
     @abstractmethod
-    def fetch(self) -> List[Dict]:
+    def fetch(self) -> List[UltraRequest]:
         pass
 
     @abstractmethod
@@ -24,5 +25,5 @@ class Ingest(ABC):
         pass
 
     @abstractmethod
-    def upload(self, client: Client) -> None:
+    def upload(self, parsed_batch: List[Event], client: Client) -> None:
         pass

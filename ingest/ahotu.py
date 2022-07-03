@@ -1,7 +1,6 @@
 import copy
 import logging as log
 import os
-import time
 from typing import Dict, List, Optional
 
 import httpx
@@ -9,6 +8,7 @@ from supabase import Client
 
 from ingest.ingest import Ingest
 from ingest.parser import distance_extract, identity
+from ingest.ultrarequest import UltraRequest
 
 from events import Event
 
@@ -57,6 +57,25 @@ def activity_parser(x: List) -> Optional[Dict]:
         return None
 
 
+class AhotuRequest(UltraRequest):
+
+    def __init__(self, params: Dict):
+        self.name = "Ahotu"
+        self.url = os.getenv("SOURCE_AHOTU")
+        if not self.url:
+            raise ValueError(
+                f"'SOURCE_{self.name.upper()}' environment variable must be set")
+        self.params = params
+
+    def fetch(self) -> Dict:
+        """
+        Later: return AhotuResponse. Error handling left to caller
+
+        :return:
+        """
+        return httpx.get(self.url, params=self.params).json()["races"]
+
+
 class AhotuIngest(Ingest):
 
     def __init__(self):
@@ -65,8 +84,13 @@ class AhotuIngest(Ingest):
         if not self.url:
             raise ValueError(
                 f"'SOURCE_{self.name.upper()}' environment variable must be set")
-        self.data = None
-        self.parsed_data = None
+
+        # Add these to the class to ensure caching:
+        self.params = {
+            "zoom": [68.0, 52.0, 1.2, -140.0],
+            "language": "en",
+            "activity": ["run"]
+        }
 
         # Class constants:
         self.__schema_mapping = {
@@ -89,134 +113,29 @@ class AhotuIngest(Ingest):
             "source_id": 2
         }
 
-    def fetch(self, interval=1, max_pages=None) -> List[Dict]:
+    def fetch(self) -> List[AhotuRequest]:
         """
+        # TODO: Return a list of promises/functions that can be executed in parallel
+        # they can then either be farmed to redis, or a threadpool etc.
+        # each return object should have a .fetch() method, maybe a .command() method
+        # that generates the CLI command to run with celery
+
         TODO: Return iterable for batching fetch, parse, upload
         TODO: Cache each fetch to blob storage
 
         :return:
         """
-        params = {
-            "zoom": [68.0, 52.0, 1.2, -140.0],
-            "language": "en",
-            "activity": ["run"]
-        }
-        # API response schema:
-        # {
-        #   "races": [<race>],
-        #   "total": <int>,
-        #   "pages": <int>,
-        #   "total_pages": <int>
-        # }
-        # where <race>:
-        # {
-        #    "@search.score": <float>,
-        #    "id": <str>,
-        # 	 "past_future": <int>,
-        # 	 "race_name": <str>,
-        # 	 "event_name_en": <str>,
-        # 	 "event_name_fr": <str>,
-        # 	 "event_id": <int>,
-        # 	 "edition_id": <int>,
-        # 	 "edition_date": <timestamp>,
-        # 	 "permalink": <str>,
-        # 	 "edition_status": <int>,
-        # 	 "event_status": <int>,
-        # 	 "date_status": null,
-        # 	 "start_date": "2022-06-30T00:00:00Z",
-        # 	 "start_time": "08:00",
-        # 	 "end_date": null,
-        # 	 "months": [<int>],
-        # 	 "tags": [<str>],
-        # 	 "lonlat": {
-        # 		"type": "Point",
-        # 		"coordinates": [
-        # 			0.583534800000052,
-        # 			52.2412949
-        # 		],
-        # 		"crs": {
-        # 			"type": "name",
-        # 			"properties": {
-        # 				"name": "EPSG:4326"
-        # 			}
-        # 		}
-        # 	 },
-        # 	 "city": <str>,
-        # 	 "country": <str>,
-        # 	 "continent": <int>,
-        # 	 "sub_continent": 154,
-        # 	 "region_1": 239,
-        # 	 "region_2": 402,
-        # 	 "location_en": "Europe / Northern Europe / United Kingdom / England / Suffolk / Bury St Edmunds",
-        # 	 "location_fr": "Europe / Europe du Nord / Royaume-Uni / Angleterre / Suffolk / Bury St Edmunds",
-        # 	 "activity": "run",
-        # 	 "race_type": 1,
-        # 	 "registration_affiliation": null,
-        # 	 "registration_affiliation_data": null,
-        # 	 "registration_starts_on": null,
-        # 	 "registration_ends_on": "2022-06-22T00:00:00Z",
-        # 	 "field_size": "",
-        # 	 "venue": "on_site",
-        # 	 "distance_km": 42.195,
-        # 	 "minutes": null,
-        # 	 "registration_url": "https://www.suffolkrunningcentre.co.uk/product-page/summer-10-in-10",
-        # 	 "time_zone_offset_to_local": 0,
-        # 	 "time_zone_offset_id": "United Kingdom Time",
-        # 	 "current_edition": true,
-        # 	 "featured": false,
-        # 	 "activities": [
-        # 		{
-        # 			"activity": "run",
-        # 			"order": 1,
-        # 			"distance": 42.195,
-        # 			"distance_unit_id": 1,
-        # 			"distance_km": 42.195,
-        # 			"tags": [
-        # 				"multi_terrain"
-        # 			],
-        # 			"elevation_gain": null,
-        # 			"elevation_gain_unit_id": null,
-        # 			"elevation_gain_m": null
-        # 		}
-        # 	 ],
-        # 	 "registration_open": false,
-        # 	 "registration_category": "none"
-        # }
+        # Need to get total number of pages:
+        self.total_pages = httpx.get(
+            self.url, params=self.params).json()["total_pages"]
 
-        # API has pagination :)
-
-        # TODO: timeouts and retries:
-        try:
-            response = httpx.get(self.url, params=params)
-        except Exception as e:
-            log.info(f"Failed to fetch data from {self.url}")
-            raise e
-
-        tmp = response.json()
-        event_ctr = 0
-        total_pages = tmp["total_pages"]
-        max_pages_bound = \
-            total_pages + 1 if max_pages is None else \
-                min(max_pages + 1, total_pages + 1)
-        for page in range(1, max_pages_bound):
-            # Note, we re-query the first page, but meh:
-            log.info(f"Fetching page {page}/{total_pages}...")
-            tmp_params = copy.deepcopy(params)
-            params["page"] = page
-            # TODO: cache the request and avoid re-querying
-            try:
-                response = httpx.get(self.url, params=tmp_params)
-            except Exception as e:
-                log.info(f"Failed to fetch data from {self.url} (page={page})")
-                raise e
-            if interval:
-                time.sleep(interval)
-            tmp_events = response.json()["races"]
-            event_ctr += len(tmp_events)
-            yield tmp_events
-
-        log.info(f"Fetched {event_ctr} events")
-        return
+        # Return a list of promises/functions that can be executed in parallel:
+        request_list = []
+        for page_ix in range(1, self.total_pages + 1):
+            tmp_params = copy.deepcopy(self.params)
+            tmp_params["page"] = page_ix
+            request_list.append(AhotuRequest(params=tmp_params))
+        return request_list
 
     def parse(self, batch: List[Dict]) -> List[Event]:
         log.info("Parsing events...")
