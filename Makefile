@@ -10,3 +10,6 @@ debug:
 
 run:
 	docker run --rm -it --env-file=.env ${BASE}/${PROJECT}:${VERSION}
+
+tag:
+	docker tag ${BASE}/${PROJECT}:${VERSION} ${PROJECT}

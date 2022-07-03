@@ -12,6 +12,8 @@ uvicorn = "^0.18.2"
 httpx = "^0.21.3"
 supabase = "^0.5.8"
 pandas = "^1.4.2"
+celery = "^5.2.7"
+redis = "^4.3.4"
 
 [tool.poetry.dev-dependencies]
 

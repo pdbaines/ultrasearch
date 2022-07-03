@@ -7,6 +7,10 @@ from ingest.ahotu import AhotuIngest
 from client import connect
 from ingest.tasks import app
 
+## TODO:
+# * Ahotu Celery
+# * Dockerized celery w/ compose, flower, etc.
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
