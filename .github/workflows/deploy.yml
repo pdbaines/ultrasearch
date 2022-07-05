@@ -3,7 +3,7 @@ name: deploy
 on:
   workflow_run:
     workflows: ["build-and-test"]
-    branches: [main]
+    branches: [pdb/k8s-deploy]
     types:
       - completed
 
