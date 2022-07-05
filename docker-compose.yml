@@ -15,7 +15,7 @@ services:
     - "6379:6379"
 
   fetch-worker:
-    image: ultrasearch
+    image: pdbaines83/ultrasearch:0.0.1
     command: ['celery', '-A', 'ingest.tasks', 'worker', '--queues', 'fetch,parse,celery', '-l', 'info']
     env_file:
       - .env
@@ -27,7 +27,7 @@ services:
       - redis
 
   upload-worker:
-    image: ultrasearch
+    image: pdbaines83/ultrasearch:0.0.1
     command: ['celery', '-A', 'ingest.tasks', 'worker', '--queues', 'upload', '-l', 'info']
     env_file:
       - .env
@@ -50,7 +50,7 @@ services:
       - "5555:5555"
 
   console:
-    image: ultrasearch
+    image: pdbaines83/ultrasearch:0.0.1
     command: sleep 1000
     env_file:
       - .env
