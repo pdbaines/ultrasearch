@@ -11,3 +11,5 @@ __pycache__*
 docker-stack.yml
 .env
 supabase/
+docker-compose/
+*.xml

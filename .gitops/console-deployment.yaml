@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../docker-compose.yml
+    kompose.version: 1.26.1 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: console
+  name: console
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: console
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../docker-compose.yml
+        kompose.version: 1.26.1 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: console
+    spec:
+      containers:
+        - args:
+            - sleep
+            - "10000000"
+          env:
+            - name: BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broker
+                  key: url
+                  optional: false
+            - name: CELERY_REMOTE
+              value: "true"
+            - name: RESULT_BACKEND
+              value: redis://redis:6379/0
+            - name: SOURCE_AHOTU
+              value: https://www.ahotu.com/advanced-search.json
+            - name: SOURCE_ULTRASIGNUP
+              value: https://ultrasignup.com/service/events.svc/closestevents
+            - name: SUPABASE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase
+                  key: key
+                  optional: false
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: supabase
+                  key: url
+                  optional: false
+          image: pdbaines83/ultrasearch:0.0.1
+          name: console
+          resources: {}
+      restartPolicy: Always
+status: {}
