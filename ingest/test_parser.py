@@ -1,4 +1,4 @@
-from parser import distance_extract
+from ingest.parser import distance_extract
 
 
 def test_distance_extract():

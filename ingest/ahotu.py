@@ -1,16 +1,19 @@
 import copy
 import logging as log
 import os
+import time
 from typing import Dict, List, Optional
 
 import httpx
 from supabase import Client
 
+from client import connect
 from ingest.ingest import Ingest
 from ingest.parser import distance_extract, identity
 from ingest.ultrarequest import UltraRequest
 
-from events import Event
+from events import Event, EventList, event_list_dumps, event_list_loads
+
 
 def not_on_site(x: str) -> bool:
     return x != "on_site"
@@ -35,7 +38,7 @@ def lon_parser(x: Dict) -> Optional[float]:
     return latlon_parser(x, 0)
 
 
-def activity_parser(x: List) -> Optional[Dict]:
+def activity_parser(x: List) -> Optional[List[str]]:
     unit_id_map = {
         1: "km",
         2: "meters",
@@ -57,9 +60,38 @@ def activity_parser(x: List) -> Optional[Dict]:
         return None
 
 
+def fetch_data(url, request_params, sleep=5) -> Dict:
+    # Be polite:
+    if sleep:
+        time.sleep(sleep)
+    return httpx.get(url, params=request_params).json()["races"]
+
+
+def parse_data(batch):
+    """
+    Note that AhotuIngest() is not serializable, so we reinstantiate
+    each time, instead of sending as an argument.
+
+    :param batch:
+    :return: Needs to be JSON, hence the event_list_dumps() call.
+    """
+    return event_list_dumps(AhotuIngest().parse(batch))
+
+
+def upload_data(event_list):
+    # Since tasks are run parallel potentially across different machines
+    # we open new db connections for each, but control connections
+    # via concurrency of the queue. For the fetch and parse tasks,
+    # we have no restrictions on the queue concurrency.
+    client = connect()
+    return AhotuIngest().upload(
+        event_list_loads(event_list), client=client)
+
+
 class AhotuRequest(UltraRequest):
 
     def __init__(self, params: Dict):
+        super().__init__(params)
         self.name = "Ahotu"
         self.url = os.getenv("SOURCE_AHOTU")
         if not self.url:
@@ -73,12 +105,13 @@ class AhotuRequest(UltraRequest):
 
         :return:
         """
-        return httpx.get(self.url, params=self.params).json()["races"]
+        return fetch_data(url=self.url, request_params=self.params)
 
 
 class AhotuIngest(Ingest):
 
     def __init__(self):
+        super().__init__()
         self.name = "Ahotu"
         self.url = os.getenv("SOURCE_AHOTU")
         if not self.url:
@@ -115,29 +148,21 @@ class AhotuIngest(Ingest):
 
     def fetch(self) -> List[AhotuRequest]:
         """
-        # TODO: Return a list of promises/functions that can be executed in parallel
-        # they can then either be farmed to redis, or a threadpool etc.
-        # each return object should have a .fetch() method, maybe a .command() method
-        # that generates the CLI command to run with celery
-
-        TODO: Return iterable for batching fetch, parse, upload
-        TODO: Cache each fetch to blob storage
-
         :return:
         """
         # Need to get total number of pages:
-        self.total_pages = httpx.get(
+        total_pages = httpx.get(
             self.url, params=self.params).json()["total_pages"]
 
         # Return a list of promises/functions that can be executed in parallel:
         request_list = []
-        for page_ix in range(1, self.total_pages + 1):
+        for page_ix in range(1, total_pages + 1):
             tmp_params = copy.deepcopy(self.params)
             tmp_params["page"] = page_ix
             request_list.append(AhotuRequest(params=tmp_params))
         return request_list
 
-    def parse(self, batch: List[Dict]) -> List[Event]:
+    def parse(self, batch: List[Dict]) -> EventList:
         log.info("Parsing events...")
         tmp_parsed_data = []
         for event in batch:
@@ -151,9 +176,9 @@ class AhotuIngest(Ingest):
                     parsed_event[key] = value[1](event[value[0]])
             tmp_parsed_data.append(parsed_event)
         log.info(f"Successfully parsed {len(tmp_parsed_data)} events")
-        return [Event(**event) for event in tmp_parsed_data]
+        return EventList([Event(**event) for event in tmp_parsed_data])
 
-    def upload(self, parsed_batch: List[Event], client: Client):
+    def upload(self, parsed_batch: EventList, client: Client):
         # Go event-by-event for now:
         new_events = 0
         new_distances = 0

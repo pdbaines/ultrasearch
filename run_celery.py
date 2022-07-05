@@ -1,43 +1,53 @@
 import json
 
-from celery import signature
+from celery import chain, signature
 
 from ingest.ultrasignup import UltrasignupIngest
 from ingest.ahotu import AhotuIngest
 from client import connect
+
+## Note: this import is required, even though app is not used
 from ingest.tasks import app
 
-## TODO:
-# * Ahotu Celery
-# * Dockerized celery w/ compose, flower, etc.
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    ultrasignup = True
-    ahotu = True
-    max_batches = 4
-
     client = connect()
-    if ultrasignup:
-        uti = UltrasignupIngest()
+
+    active = {
+        "ultrasignup": {
+            "run": True,
+            "ingest": UltrasignupIngest
+        },
+        "ahotu": {
+            "run": True,
+            "ingest": AhotuIngest
+        }
+    }
+    max_batches = 100
+
+    for source in ["ultrasignup", "ahotu"]:
+        if not active[source]["run"]:
+            continue
+
+        uti = active[source]["ingest"]()
         uti_requests = uti.fetch()
 
         # Submit all tasks to celery, workers will start to churn through
         # these immediately. Number of workers controls parallelism.
-        print("Submitting fetch tasks to celery")
+        print(f"Submitting {source} fetch tasks to celery")
         results = []
         for i, batch in enumerate(uti_requests):
-            results.append(app.send_task(
-                'ultrasignup_fetcher',
-                kwargs={"url": batch.url, "request_params": json.dumps(batch.params)}))
+            results.append(chain(
+                signature(
+                    f'{source}_fetcher',
+                    kwargs={
+                        "url": batch.url,
+                        "request_params": json.dumps(batch.params)
+                    }) |
+                signature(f'{source}_parser') |
+                signature(f'{source}_uploader')
+            )())
             if (i + 1) >= max_batches:
                 break
-        print("All tasks submitted")
-
-        # Loop over results and parse/upload them:
-        for i, result in enumerate(results):
-            parsed_batch = uti.parse(result.get())
-            uti.upload(parsed_batch, client=client)
-            if (i + 1) >= max_batches:
-                break
+        print(f"All {source} tasks submitted")

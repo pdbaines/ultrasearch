@@ -20,6 +20,7 @@ COPY client.py \
     events.py \
     run_ingest.py \
     run_celery.py \
+    test_events.py \
     /app/
 
 CMD ["python", "run_ingest.py"]

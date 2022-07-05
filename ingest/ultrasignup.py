@@ -7,15 +7,54 @@ from typing import List, Dict
 import httpx
 from supabase import Client
 
-from events import Event
+from client import connect
+from events import Event, EventList, event_list_dumps, event_list_loads
 from ingest.ultrarequest import UltraRequest
 from ingest.ingest import Ingest
 from ingest.parser import distance_parser, distance_extract, identity
 
 
+class InternalError(Exception):
+    pass
+
+
+def fetch_data(url, request_params, sleep=5) -> Dict:
+    # Be polite:
+    if sleep:
+        time.sleep(sleep)
+    tmp = httpx.get(url, params=request_params).json()
+    if len(tmp) == 100:
+        raise InternalError(
+            f"Ultrasignup API returned more than 100 events for "
+            "month {month} and distance {dist}")
+    return tmp
+
+
+def parse_data(batch):
+    """
+    Note that AhotuIngest() is not serializable, so we reinstantiate
+    each time, instead of sending as an argument.
+
+    :param batch:
+    :return: Needs to be JSON, hence the event_list_dumps() call.
+    """
+    return event_list_dumps(UltrasignupIngest().parse(batch))
+
+
+def upload_data(event_list):
+    # Since tasks are run parallel potentially across different machines
+    # we open new db connections for each, but control connections
+    # via concurrency of the queue. For the fetch and parse tasks,
+    # we have no restrictions on the queue concurrency.
+    client = connect()
+    return UltrasignupIngest().upload(
+        event_list_loads(event_list), client=client)
+
+
 class UltrasignupRequest(UltraRequest):
 
     def __init__(self, params: Dict):
+        super().__init__(params)
         self.name = "Ultrasignup"
         self.url = os.getenv("SOURCE_ULTRASIGNUP")
         if not self.url:
@@ -29,15 +68,6 @@ class UltrasignupRequest(UltraRequest):
         :return:
         """
         return fetch_data(self.url, self.params)
-
-
-def fetch_data(url, request_params) -> Dict:
-    tmp = httpx.get(url, params=request_params).json()
-    if len(tmp) == 100:
-        raise InternalError(
-            f"Ultrasignup API returned more than 100 events for "
-            "month {month} and distance {dist}")
-    return tmp
 
 
 class UltrasignupIngest(Ingest):
@@ -92,7 +122,7 @@ class UltrasignupIngest(Ingest):
                 request_list.append(UltrasignupRequest(tmp_params))
         return request_list
 
-    def parse(self, batch: List[Dict]) -> List[Event]:
+    def parse(self, batch: List[Dict]) -> EventList:
         tmp_parsed_data = []
         for event in batch:
             parsed_event = {}
@@ -104,7 +134,7 @@ class UltrasignupIngest(Ingest):
                     # Remap the field:
                     parsed_event[key] = value[1](event[value[0]])
             tmp_parsed_data.append(parsed_event)
-        return [Event(**tmp_event) for tmp_event in tmp_parsed_data]
+        return EventList([Event(**tmp_event) for tmp_event in tmp_parsed_data])
 
     def upload(self, parsed_batch: List[Event], client: Client):
         # Go event-by-event for now:

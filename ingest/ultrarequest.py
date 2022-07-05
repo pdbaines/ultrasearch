@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class UltraRequest(ABC):
 
     def __init__(self, params):

@@ -1,7 +1,8 @@
 ## TODO
 
 * Add redis cache for API requests
-* Implement ability to run specific batches by page id (this gives ability to use e.g., celery for pooled workers with retries), needs loop unrolling for ultrasignup
+* Multiple queues
+* Scheduling
 
 ## Local Development
 

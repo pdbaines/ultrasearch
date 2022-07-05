@@ -14,6 +14,7 @@ supabase = "^0.5.8"
 pandas = "^1.4.2"
 celery = "^5.2.7"
 redis = "^4.3.4"
+pytest = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 
