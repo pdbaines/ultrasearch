@@ -27,11 +27,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: pdbaines83/ultrasearch:0.0.1
+          tags: |
+            pdbaines83/ultrasearch:${{ github.sha }}
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
       - 
         name: Checkout 
         uses: actions/checkout@v2
@@ -41,14 +39,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           registry: hub.docker.com
-          image: pdbaines83/ultrasearch:0.0.1
-          options: -v ${{ github.workspace }}/tests:/app/tests
+          image: pdbaines83/ultrasearch:${{ github.sha }}
           run: |
-            pytest --junit-xml=/app/tests/test-results.xml
-
-      -
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./tests/test-results.xml
-          verbose: true
+            pytest

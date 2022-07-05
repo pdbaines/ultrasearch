@@ -3,6 +3,7 @@ FROM python:3.10
 RUN pip install poetry==1.1.13
 
 RUN mkdir /app
+RUN mkdir /app/tests
 RUN groupadd -g 1000 ultrasearchers
 RUN useradd -s /bin/bash --create-home --uid 1000 --gid 1000 ultrasearcher
 
