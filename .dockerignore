@@ -1,0 +1,2 @@
+ingest/data/
+ingest/celery_local_config.py

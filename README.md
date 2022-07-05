@@ -1,7 +1,8 @@
 ## TODO
 
 * Add redis cache for API requests
-* Implement ability to run specific batches by page id (this gives ability to use e.g., celery for pooled workers with retries), needs loop unrolling for ultrasignup
+* Multiple queues
+* Scheduling
 
 ## Local Development
 
@@ -27,6 +28,24 @@ make build
 Set the required environment variables (`source .env`), then:
 ```
 python run_ingest.py
+```
+
+### Running with celery
+
+```
+# Start workers:
+celery -A ingest.tasks worker -l INFO
+
+# Run job:
+python run_celery.py
+```
+Dockerized:
+```
+docker-compose up
+docker-compose exec console run_celery.py
+
+# Or just:
+make compose-run
 ```
 
 ## CLI usage

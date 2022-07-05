@@ -6,35 +6,26 @@ from client import connect
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
-    ultrasignup = False
+    ultrasignup = True
     ahotu = True
-    max_batches = 100
-    parse_skip_index = 64
+    max_batches = 4
 
     client = connect()
 
     if ultrasignup:
-        batch_ctr = 0
         uti = UltrasignupIngest()
-        for batch in uti.fetch():
-            batch_ctr += 1
-            # Allow skipping for resumption:
-            if batch_ctr < parse_skip_index:
-                continue
-            parsed_batch = uti.parse(batch)
+        uti_requests = uti.fetch()
+        for i, batch in enumerate(uti_requests):
+            parsed_batch = uti.parse(batch.fetch())
             uti.upload(parsed_batch, client=client)
-            if batch_ctr >= max_batches:
+            if i >= max_batches:
                 break
 
     if ahotu:
         ahi = AhotuIngest()
-        batch_ctr = 0
-        for batch in ahi.fetch():
-            batch_ctr += 1
-            # Allow skipping for resumption:
-            if batch_ctr < parse_skip_index:
-                continue
-            parsed_batch = ahi.parse(batch)
+        ahotu_requests = ahi.fetch()
+        for i, batch in enumerate(ahotu_requests):
+            parsed_batch = ahi.parse(batch.fetch())
             ahi.upload(parsed_batch, client=client)
-            if batch_ctr >= max_batches:
+            if i >= max_batches:
                 break

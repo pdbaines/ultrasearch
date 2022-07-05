@@ -14,9 +14,13 @@ COPY poetry.lock pyproject.toml /app/
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
 
+ENV PATH="/home/ultrasearcher/.local/bin:${PATH}"
 COPY ingest/ /app/ingest/
 COPY client.py \
+    events.py \
     run_ingest.py \
+    run_celery.py \
+    test_events.py \
     /app/
 
 CMD ["python", "run_ingest.py"]
