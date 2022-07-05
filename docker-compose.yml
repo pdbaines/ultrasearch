@@ -14,9 +14,21 @@ services:
     ports:
     - "6379:6379"
 
-  worker:
+  fetch-worker:
     image: ultrasearch
-    command: ['celery', '-A', 'ingest.tasks', 'worker', '-l', 'info']
+    command: ['celery', '-A', 'ingest.tasks', 'worker', '--queues', 'fetch,parse,celery', '-l', 'info']
+    env_file:
+      - .env
+    environment:
+      - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
+      - RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - rabbitmq
+      - redis
+
+  upload-worker:
+    image: ultrasearch
+    command: ['celery', '-A', 'ingest.tasks', 'worker', '--queues', 'upload', '-l', 'info']
     env_file:
       - .env
     environment:
@@ -32,7 +44,8 @@ services:
       - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
       - RESULT_BACKEND=redis://redis:6379/0
     depends_on:
-      - worker
+      - fetch-worker
+      - upload-worker
     ports:
       - "5555:5555"
 

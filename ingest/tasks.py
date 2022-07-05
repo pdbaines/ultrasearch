@@ -25,19 +25,27 @@ serialization.register(
     content_encoding='utf-8',
 )
 
-if os.getenv('BROKER_URL') is None:
-    app = Celery('foo')
-    app.config_from_object('ingest.celery_local_config')
-else:
-    app = Celery(
-        'foo',
-        broker=os.getenv('BROKER_URL'),
-        backend=os.getenv('RESULT_BACKEND'),
-        accept_content=[
-            'json',
-            'event_parser_serializer'
-        ]
-    )
+FETCH_QUEUE = 'fetch'
+PARSE_QUEUE = 'parse'
+UPLOAD_QUEUE = 'upload'
+
+app = Celery(
+    'foo',
+    broker=os.getenv('BROKER_URL'),
+    backend=os.getenv('RESULT_BACKEND'),
+    accept_content=[
+        'json',
+        'event_parser_serializer'
+    ],
+    task_routes={
+        'ultrasignup_fetcher': {'queue': FETCH_QUEUE},
+        'ahotu_fetcher': {'queue': FETCH_QUEUE},
+        'ultrasignup_parser': {'queue': PARSE_QUEUE},
+        'ahotu_parser': {'queue': PARSE_QUEUE},
+        'ultrasignup_uploader': {'queue': UPLOAD_QUEUE},
+        'ahotu_uploader': {'queue': UPLOAD_QUEUE}
+    }
+)
 
 # =============================================================================
 # Ultrasignup tasks:

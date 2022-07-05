@@ -24,7 +24,7 @@ if __name__ == '__main__':
             "ingest": AhotuIngest
         }
     }
-    max_batches = 100
+    max_batches = 5
 
     for source in ["ultrasignup", "ahotu"]:
         if not active[source]["run"]:
