@@ -1,8 +1,31 @@
-## TODO
+# Ultrasearch
 
-* Add redis cache for API requests
-* Multiple queues
-* Scheduling
+Backend for [Ultrasearch](https://ultrasearch.io).
+
+## Overview
+
+This repo is the backend for [Ultrasearch](https://ultrasearch.io).
+It runs scheduled tasks to obtain data from various public APIs
+that contain race information about ultramarathons, and ingests
+that data to a database managed by [Supabase](https://supabase.com).
+
+## Architecture Overview
+
+For scalability, idempotency and modularity, we break up the
+workload into fetch, parse, and upload tasks that represent
+a common patter for all ingest sources.
+
+For scalability, fault-tolerance and many more reasons, we use
+[celery](https://celeryproject.org) to orchestrate the execution of
+these dependent component tasks. 
+
+* Celery:
+  * RabbitMQ broker
+  * Redis result store
+  * Multiple queues for specific task types
+  * Dedicated workers for specific queues
+  * Automated retries for retryable task failures
+* Scheduled job to submit chained tasks to Celery
 
 ## Local Development
 
@@ -19,41 +42,15 @@ psql 'postgresql://postgres:postgres@localhost:54322/postgres'
 
 ## Containerized Development
 
+Start the docker compose stack: 
 ```yaml
-make build
+make down build tag up
 ```
 
-## Running the ingest jobs
-
-Set the required environment variables (`source .env`), then:
-```
-python run_ingest.py
-```
-
-### Running with celery
+### Running the ingest jobs
 
 ```
-# Start workers:
-celery -A ingest.tasks worker -l INFO
-
-# Run job:
-python run_celery.py
-```
-Dockerized:
-```
-docker-compose up
-docker-compose exec console run_celery.py
-
-# Or just:
 make compose-run
-```
-
-## CLI usage
-
-```
-ultrasearch fetch --source <source> --params <params> --output <output>
-ultrasearch parse --source <source> --params <params> --output <output>
-ultrasearch upload --source <source>
 ```
 
 ## Profiling
@@ -63,58 +60,9 @@ python -m cProfile -o ingest.prof run_ingest.py
 snakeviz ingest.prof
 ```
 
-## API Exploration
+## Testing
 
-### Ultrasignup
-
-API overview:
+Using docker:
 ```
-# Endpoint for converting zipcodes to co-ordinates (not needed):
-curl -X POST -H "Content-Type: application/json" -d '{"search":"91101"}' https://ultrasignup.com/service/events.svc/location/search
-
-# Get events list:
-curl "https://ultrasignup.com/service/events.svc/closestevents?virtual=0&open=1&past=1&lat=30&lng=-100&mi=500&mo=12&on&m=1,2,3,4,5,6,7,8,9,10,11,12&c=3,4&dist=6"
+make test
 ```
-Example output:
-```
-{
-     "BannerId": "a6cd09c7-5dfc-49c4-aa9b-1003826b0d5b",
-     "Cancelled": false,
-     "City": "Smithfield",
-     "DistanceCategories": " non ultra",
-     "Distances": "10hrs, 10 Hour TEAM, Ruck -10 Hours, Ruck -5 Hours, Half Windsor (5hour), 3 Miler, Ruck -2 Hours,",
-     "EventDate": "6/10/2023",
-     "EventDateEnd": null,
-     "EventDateId": 48909,
-     "EventDateOriginal": "6/10/2023",
-     "EventDistances": null,
-     "EventId": 13550,
-     "EventImages": [
-       {
-         "ImageId": "b2369642-9865-4474-95d1-238fab963295",
-         "ImageLabel": null
-       }
-     ],
-     "EventName": "Windsor Castle 10-Hour",
-     "EventType": 0,
-     "EventWebsite": "",
-     "GroupId": 0,
-     "GroupName": null,
-     "Latitude": "36.9759",
-     "Location": "",
-     "Longitude": "-76.6261",
-     "Postponed": false,
-     "State": "VA",
-     "VirtualEvent": false
-   }
-```
-
-## Project TODO List
-
-* Ingest runs on schedule
-* Searchable layer on database
-
-Potential additional sources:
-* MarathonGuide.com
-* runningintheusa
-* https://utmb.world/utmb-world-series-events
