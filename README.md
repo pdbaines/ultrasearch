@@ -27,6 +27,12 @@ these dependent component tasks.
   * Automated retries for retryable task failures
 * Scheduled job to submit chained tasks to Celery
 
+## Deployment
+
+Production deployment is done to k8s using manifests contained
+in `.gitops` and orchestrated by GitHub actions (`.gitops`).
+Kubernetes clusters is managed by [Platform9](platform9.com).
+
 ## Local Development
 
 ```commandline
