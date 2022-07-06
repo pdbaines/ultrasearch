@@ -26,6 +26,9 @@ if __name__ == '__main__':
     }
     max_batches = 50000
 
+    print(f"Config: {active}")
+    print(f"Max batches: {max_batches}")
+
     for source in ["ultrasignup", "ahotu"]:
         if not active[source]["run"]:
             continue
