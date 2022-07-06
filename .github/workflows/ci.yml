@@ -1,13 +1,11 @@
-name: Docker Image CI
+name: build-and-test
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  docker:
+  ci:
     runs-on: ubuntu-latest
     steps:
       -
@@ -30,10 +28,11 @@ jobs:
           tags: |
             pdbaines83/ultrasearch:${{ github.sha }}
 
-      - 
-        name: Checkout 
+      -
+        name: Checkout
         uses: actions/checkout@v2
-      - 
+
+      -
         uses: addnab/docker-run-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -42,3 +41,18 @@ jobs:
           image: pdbaines83/ultrasearch:${{ github.sha }}
           run: |
             pytest
+
+      -
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+        id: setcontext
+
+      -
+        name: deploy
+        uses: Azure/k8s-deploy@v3.1
+        with:
+          manifests: |
+            .gitops
+          images: pdbaines83/ultrasearch:${{ github.sha }}

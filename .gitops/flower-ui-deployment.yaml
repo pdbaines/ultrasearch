@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../docker-compose.yml
+    kompose.version: 1.26.1 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: flower-ui
+  name: flower-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: flower-ui
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../docker-compose.yml
+        kompose.version: 1.26.1 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: flower-ui
+    spec:
+      containers:
+        - env:
+            - name: BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broker
+                  key: url
+                  optional: false
+            - name: RESULT_BACKEND
+              value: redis://redis:6379/0
+          image: mher/flower
+          name: flower-ui
+          ports:
+            - containerPort: 5555
+          resources: {}
+      restartPolicy: Always
+status: {}

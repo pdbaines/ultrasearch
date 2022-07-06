@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../docker-compose.yml
+    kompose.version: 1.26.1 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: upload-worker
+  name: upload-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: upload-worker
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../docker-compose.yml
+        kompose.version: 1.26.1 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: upload-worker
+    spec:
+      containers:
+        - args:
+            - celery
+            - -A
+            - ingest.tasks
+            - worker
+            - --queues
+            - upload
+            - -l
+            - info
+          env:
+            - name: BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broker
+                  key: url
+                  optional: false
+            - name: CELERY_REMOTE
+              value: "true"
+            - name: RESULT_BACKEND
+              value: redis://redis:6379/0
+            - name: SOURCE_AHOTU
+              value: https://www.ahotu.com/advanced-search.json
+            - name: SOURCE_ULTRASIGNUP
+              valueFrom:
+                secretKeyRef:
+                  name: supabase
+                  key: url
+                  optional: false
+            - name: SUPABASE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase
+                  key: key
+                  optional: false
+            - name: CELERY_REMOTE
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: supabase
+                  key: url
+                  optional: false
+          image: pdbaines83/ultrasearch:0.0.1
+          name: upload-worker
+          resources: {}
+      restartPolicy: Always
+status: {}

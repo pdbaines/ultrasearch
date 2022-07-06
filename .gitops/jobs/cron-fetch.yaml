@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-fetch
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cron-fetch
+            image: pdbaines83/ultrasearch:0.0.1
+            imagePullPolicy: IfNotPresent
+            command: ['/bin/sh', '-c']
+            args: ['python', 'run_celery.py']
+            env:
+              - name: BROKER_URL
+                valueFrom:
+                  secretKeyRef:
+                    name: broker
+                    key: url
+                    optional: false
+              - name: CELERY_REMOTE
+                value: "true"
+              - name: RESULT_BACKEND
+                value: redis://redis:6379/0
+              - name: SOURCE_AHOTU
+                value: https://www.ahotu.com/advanced-search.json
+              - name: SOURCE_ULTRASIGNUP
+                value: https://ultrasignup.com/service/events.svc/closestevents
+              - name: SUPABASE_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase
+                    key: key
+                    optional: false
+              - name: SUPABASE_URL
+                valueFrom:
+                  secretKeyRef:
+                    name: supabase
+                    key: url
+                    optional: false
+          restartPolicy: OnFailure
