@@ -12,8 +12,8 @@ spec:
           - name: cron-fetch
             image: pdbaines83/ultrasearch:0.0.1
             imagePullPolicy: IfNotPresent
-            command:
-            - python run_celery.py
+            command: ['/bin/sh', '-c']
+            args: ['python', 'run_celery.py']
             env:
               - name: BROKER_URL
                 valueFrom:
