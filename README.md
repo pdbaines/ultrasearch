@@ -33,6 +33,13 @@ Production deployment is done to k8s using manifests contained
 in `.gitops` and orchestrated by GitHub actions (`.gitops`).
 Kubernetes clusters is managed by [Platform9](platform9.com).
 
+For debugging production, obtain the kubeconfig from platform9
+and debug away. For e.g., Flower UI:
+```
+k port-forward service/flower-ui 5555:5555
+```
+then view on `localhost:5555`.
+
 ## Local Development
 
 ```commandline
