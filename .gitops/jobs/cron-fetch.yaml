@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: cron-fetch
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "* 19 * * *"
   jobTemplate:
     spec:
       template:
