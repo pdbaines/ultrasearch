@@ -32,7 +32,7 @@ these dependent component tasks.
 
 Production deployment is done to k8s using manifests contained
 in `.gitops` and orchestrated by GitHub actions (`.gitops`).
-Kubernetes clusters is managed by [Platform9](platform9.com).
+Kubernetes cluster is managed by [Platform9](platform9.com).
 
 For debugging production, obtain the kubeconfig from platform9
 and debug away. For e.g., Flower UI:
