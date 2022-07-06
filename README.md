@@ -28,6 +28,10 @@ these dependent component tasks.
   * Automated retries for retryable task failures
 * Scheduled job to submit chained tasks to Celery
 
+For an overview, see the arhcitecture diagram below:
+
+<img src="ultrasearch.svg" alt="drawing" width="800"/>
+
 ## Deployment
 
 Production deployment is done to k8s using manifests contained
