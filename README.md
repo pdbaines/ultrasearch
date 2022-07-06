@@ -1,6 +1,7 @@
 # Ultrasearch
 
 Backend for [Ultrasearch](https://ultrasearch.io).
+For the frontend, see [ultrasearch-frontend](https://github.com/pdbaines/ultrasearch-frontend).
 
 ## Overview
 
