@@ -15,6 +15,18 @@ kubectl create rolebinding ${SA_CI_USERNAME}-edit-binding \
     --serviceaccount=${NAMESPACE}:${SA_CI_USERNAME} \
     --namespace=${NAMESPACE}
 
+# GitHub Action annotates the namespace, so need a little extra:
+kubectl create role namespace-patch \
+    --verb=patch \
+    --verb=get \
+    --resource=namespaces \
+    --namespace=${NAMESPACE}
+
+kubectl create rolebinding ${SA_CI_USERNAME}-namespace-patch \
+    --role=namespace-patch \
+    --serviceaccount=${NAMESPACE}:${SA_CI_USERNAME} \
+    --namespace=${NAMESPACE}
+
 SA_APP_USERNAME=${NAMESPACE}-app
 kubectl create serviceaccount ${SA_APP_USERNAME}
 kubectl create rolebinding ${SA_APP_USERNAME}-edit-binding \

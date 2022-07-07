@@ -2,7 +2,7 @@ name: build-and-test
 
 on:
   push:
-    branches: [ "main", "pdb/k8s-tidy" ]
+    branches: [ "main" ]
 
 jobs:
   ci:
@@ -58,3 +58,4 @@ jobs:
           manifests: |
             .gitops
           images: pdbaines83/ultrasearch:${{ github.sha }}
+          strategy: basic
