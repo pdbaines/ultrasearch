@@ -23,6 +23,8 @@ spec:
       labels:
         io.kompose.service: console
     spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
       containers:
         - args:
             - sleep

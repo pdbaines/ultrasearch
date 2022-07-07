@@ -27,4 +27,5 @@ down:
 	docker compose down -v
 
 port-forward:
-	k port-forward service/flower-ui 5555:5555
+	kubectl port-forward service/flower-ui 5555:5555
+

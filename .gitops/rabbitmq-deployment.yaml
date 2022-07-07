@@ -23,6 +23,8 @@ spec:
       labels:
         io.kompose.service: rabbitmq
     spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
       containers:
         - env:
             - name: RABBITMQ_DEFAULT_USER
