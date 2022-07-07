@@ -23,6 +23,8 @@ spec:
       labels:
         io.kompose.service: redis
     spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
       containers:
         - image: redis
           name: redis

@@ -45,14 +45,17 @@ jobs:
       -
         uses: azure/k8s-set-context@v1
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+          method: service-account
+          k8s-url: ${{ secrets.K8S_CLUSTER_URL }}
+          k8s-secret: ${{ secrets.K8S_SERVICE_ACCOUNT_SECRET }}
         id: setcontext
 
       -
         name: deploy
         uses: Azure/k8s-deploy@v3.1
         with:
+          namespace: ultrasearch
           manifests: |
             .gitops
           images: pdbaines83/ultrasearch:${{ github.sha }}
+          strategy: basic

@@ -8,6 +8,8 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: ultrasearch-app
+          automountServiceAccountToken: false
           containers:
           - name: cron-fetch
             image: pdbaines83/ultrasearch:0.0.1

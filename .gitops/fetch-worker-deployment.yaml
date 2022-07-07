@@ -23,6 +23,8 @@ spec:
       labels:
         io.kompose.service: fetch-worker
     spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
       containers:
         - args:
             - celery

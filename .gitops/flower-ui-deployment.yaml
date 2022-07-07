@@ -23,6 +23,8 @@ spec:
       labels:
         io.kompose.service: flower-ui
     spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
       containers:
         - env:
             - name: BROKER_URL
