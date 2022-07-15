@@ -1,0 +1,33 @@
+_id: req_446ae51e023143d7ade479ce9079b66c
+type: Request
+parentId: wrk_8a2436b23a7f4f0ea1ebead445d4770f
+modified: 1657919910180
+created: 1651005278116
+url: https://www.ahotu.com/advanced-search.json
+name: Ahotu Fetch
+description: ""
+method: GET
+body: {}
+parameters: []
+headers:
+  - id: pair_59baec6f98b7427c9cf63086414e6ca8
+    name: language
+    value: en
+    description: ""
+  - id: pair_9f51afba540241458464d8d1386c3d49
+    name: activity
+    value: '["run"]'
+    description: ""
+  - id: pair_7c82128c8c6849d28e1dea80f0a33d8b
+    name: zoom
+    value: "[68.0, 52.0, 1.2, -140.0]"
+    description: ""
+authentication: {}
+metaSortKey: -1651005278116
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global

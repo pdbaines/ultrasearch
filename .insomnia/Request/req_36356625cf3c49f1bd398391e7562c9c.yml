@@ -1,0 +1,41 @@
+_id: req_36356625cf3c49f1bd398391e7562c9c
+type: Request
+parentId: wrk_8a2436b23a7f4f0ea1ebead445d4770f
+modified: 1657920023452
+created: 1657919921819
+url: https://ultrasignup.com/service/events.svc/closestevents
+name: Ultrasignup Fetch
+description: ""
+method: GET
+body: {}
+parameters: []
+headers:
+  - id: pair_17bb54ba1e4f44119d031fcb62f3a183
+    name: virtual
+    value: "0"
+    description: ""
+  - id: pair_74291ba3f17a4dcbaa1fd912a662abc2
+    name: lat
+    value: "30"
+    description: ""
+  - id: pair_6416abccab15466fa21abc1496aef18e
+    name: lng
+    value: "-100"
+    description: ""
+  - id: pair_f26f5b211cc34f3c9e41571dfccf0420
+    name: m
+    value: "[11,12]"
+    description: ""
+  - id: pair_a976db14304845da8c680aff2e3b07eb
+    name: dist
+    value: "[6,7,8]"
+    description: ""
+authentication: {}
+metaSortKey: -1657919921819
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
