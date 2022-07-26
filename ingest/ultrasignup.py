@@ -107,8 +107,8 @@ class UltrasignupIngest(Ingest):
             "lat": 30,
             "lng": -100,
             "mi": 50000,
-            "m": [i for i in range(11, 13)],
-            "dist": [i for i in range(6, 9)]
+            "m": [i for i in range(1, 13)],  # 1-12
+            "dist": [i for i in range(1, 13)]  # 1-12
         }
         # API only returns max 100 with no pagination :(
         # Iterate over months and distance pairs:
