@@ -7,6 +7,8 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: console
+    app: console
+    version: "0.0.1"
   name: console
 spec:
   replicas: 1
@@ -22,6 +24,8 @@ spec:
       creationTimestamp: null
       labels:
         io.kompose.service: console
+        app: console
+        version: "0.0.1"
     spec:
       serviceAccountName: ultrasearch-app
       automountServiceAccountToken: false

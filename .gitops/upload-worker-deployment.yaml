@@ -7,6 +7,8 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: upload-worker
+    app: upload-worker
+    version: "0.0.1"
   name: upload-worker
 spec:
   replicas: 1
@@ -22,6 +24,8 @@ spec:
       creationTimestamp: null
       labels:
         io.kompose.service: upload-worker
+        app: upload-worker
+        version: "0.0.1"
     spec:
       serviceAccountName: ultrasearch-app
       automountServiceAccountToken: false

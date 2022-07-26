@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: flower-ui-gateway
+  labels:
+    app: flower-ui
+    version: "0.0.1"
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTP
+    hosts:
+    - "*"

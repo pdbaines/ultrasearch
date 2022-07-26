@@ -7,10 +7,12 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: flower-ui
+    app: flower-ui
+    version: "0.0.1"
   name: flower-ui
 spec:
   ports:
-    - name: "5555"
+    - name: "tcp-5555"
       port: 5555
       targetPort: 5555
   selector:
