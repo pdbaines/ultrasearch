@@ -4,8 +4,10 @@ metadata:
   name: cron-fetch
 spec:
   schedule: "* 19 * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      parallelism: 1
       template:
         spec:
           serviceAccountName: ultrasearch-app
