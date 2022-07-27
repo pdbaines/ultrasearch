@@ -37,8 +37,18 @@ spec:
                   name: broker
                   key: url
                   optional: false
+            - name: FLOWER_BASIC_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: flower
+                  key: auth
+                  optional: false
             - name: RESULT_BACKEND
-              value: redis://redis:6379/0
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: auth_url
+                  optional: false
           image: mher/flower
           name: flower-ui
           ports:
