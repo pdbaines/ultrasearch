@@ -32,7 +32,7 @@ def fetch_data(url, request_params, sleep=5) -> Dict:
 
 def parse_data(batch):
     """
-    Note that AhotuIngest() is not serializable, so we reinstantiate
+    Note that UltraSignupIngest() is not serializable, so we reinstantiate
     each time, instead of sending as an argument.
 
     :param batch:

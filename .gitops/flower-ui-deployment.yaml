@@ -37,6 +37,12 @@ spec:
                   name: broker
                   key: url
                   optional: false
+            - name: FLOWER_BROKER_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: broker
+                  key: management_url
+                  optional: false
             - name: FLOWER_BASIC_AUTH
               valueFrom:
                 secretKeyRef:
@@ -50,6 +56,8 @@ spec:
                   key: auth_url
                   optional: false
           image: mher/flower
+          command: ["celery"]
+          args: ["flower", "--url_prefix=flower", "--broker_api=$(FLOWER_BROKER_API_URL)"]
           name: flower-ui
           ports:
             - containerPort: 5555

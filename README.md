@@ -91,3 +91,8 @@ Clearing queued tasks:
 ```
 celery purge -Q upload,fetch
 ```
+
+Flower:
+```
+$INGRESS_HOST:$INGRESS_PORT:443/flower/
+```
