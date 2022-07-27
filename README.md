@@ -84,3 +84,10 @@ Using docker:
 ```
 make test
 ```
+
+## Operations
+
+Clearing queued tasks:
+```
+celery purge -Q upload,fetch
+```

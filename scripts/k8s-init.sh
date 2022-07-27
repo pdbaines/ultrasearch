@@ -3,7 +3,10 @@
 NAMESPACE=ultrasearch
 
 kubectl create namespace ${NAMESPACE}
+kubectl label namespace ${NAMESPACE} istio-injection=enabled
 kubectl create secret generic broker --from-literal=url="${BROKER_URL}" --namespace=${NAMESPACE}
+kubectl create secret generic flower --from-literal=auth="${FLOWER_USERNAME}:${FLOWER_PASSWORD}" --namespace=${NAMESPACE}
+kubectl create secret generic redis --from-literal=password="${REDIS_PASSWORD}" --from-literal=auth_url="${REDIS_AUTH_URL}" --namespace=${NAMESPACE}
 kubectl create secret generic supabase --from-literal=url="${SUPABASE_URL}" --from-literal=key="${SUPABASE_KEY}" --namespace=${NAMESPACE}
 kubectl create secret generic rabbitmq --from-literal=username="${RABBITMQ_USERNAME}" --from-literal=password="${RABBITMQ_PASSWORD}" --namespace=${NAMESPACE}
 

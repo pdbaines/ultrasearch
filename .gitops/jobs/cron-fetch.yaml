@@ -14,8 +14,7 @@ spec:
           - name: cron-fetch
             image: pdbaines83/ultrasearch:0.0.1
             imagePullPolicy: IfNotPresent
-            command: ['python']
-            args: ['run_celery.py']
+            command: ["/bin/bash", "-c", "python run_celery.py && curl -X POST http://localhost:15020/quitquitquit"]
             env:
               - name: BROKER_URL
                 valueFrom:

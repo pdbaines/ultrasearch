@@ -7,6 +7,8 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: upload-worker
+    app: upload-worker
+    version: "0.0.1"
   name: upload-worker
 spec:
   replicas: 1
@@ -22,6 +24,8 @@ spec:
       creationTimestamp: null
       labels:
         io.kompose.service: upload-worker
+        app: upload-worker
+        version: "0.0.1"
     spec:
       serviceAccountName: ultrasearch-app
       automountServiceAccountToken: false
@@ -45,7 +49,11 @@ spec:
             - name: CELERY_REMOTE
               value: "true"
             - name: RESULT_BACKEND
-              value: redis://redis:6379/0
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: auth_url
+                  optional: false
             - name: SOURCE_AHOTU
               value: https://www.ahotu.com/advanced-search.json
             - name: SOURCE_ULTRASIGNUP

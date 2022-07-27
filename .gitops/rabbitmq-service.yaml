@@ -7,10 +7,13 @@ metadata:
   creationTimestamp: null
   labels:
     io.kompose.service: rabbitmq
+    app: rabbitmq
+    version: "0.0.1"
   name: rabbitmq
 spec:
   ports:
-    - name: "5672"
+    - name: "tcp-5672"
+      protocol: TCP
       port: 5672
       targetPort: 5672
   selector:
