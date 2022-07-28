@@ -96,3 +96,8 @@ Flower:
 ```
 $INGRESS_HOST:$INGRESS_PORT:443/flower/
 ```
+
+RedisInsight:
+```
+k port-forward svc/redisinsight 8001:8001
+```

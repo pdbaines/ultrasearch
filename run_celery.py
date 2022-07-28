@@ -53,4 +53,4 @@ if __name__ == '__main__':
             )())
             if (i + 1) >= max_batches:
                 break
-        print(f"All {source} tasks submitted")
+        print(f"All {source} tasks submitted ({len(uti_requests)} task chains)")

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../docker-compose.yml
+    kompose.version: 1.26.1 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: redisinsight
+    app: redisinsight
+    version: "0.0.1"
+  name: redisinsight
+spec:
+  ports:
+    - name: "tcp-8001"
+      port: 8001
+      targetPort: 8001
+  selector:
+    io.kompose.service: redisinsight
+status:
+  loadBalancer: {}

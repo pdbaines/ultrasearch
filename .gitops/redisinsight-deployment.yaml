@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f ../docker-compose.yml
+    kompose.version: 1.26.1 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: redisinsight
+    app: redisinsight
+    version: "0.0.1"
+  name: redisinsight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: redisinsight
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f ../docker-compose.yml
+        kompose.version: 1.26.1 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: redisinsight
+        app: redisinsight
+        version: "0.0.1"
+    spec:
+      serviceAccountName: ultrasearch-app
+      automountServiceAccountToken: false
+      containers:
+        - image: redislabs/redisinsight:latest
+          name: redisinsight
+          ports:
+            - containerPort: 8001
+          resources: {}
