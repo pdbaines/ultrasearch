@@ -68,16 +68,15 @@ def ahotu_parser(batch):
 
 @app.task(
     name='ultrasignup_uploader',
-    throws=(
-        httpcore.ReadTimeout,
-        httpx.ReadTimeout,
-    ),
     auto_retry_for=(
-        httpcore.ReadTimeout,
-        httpx.ReadTimeout,
+        Exception,
     ),
+    # https://docs.celeryq.dev/en/latest/userguide/tasks.html?highlight=retry#Task.max_retries
     max_retries=3,
-    retry_backoff=True)
+    # https://docs.celeryq.dev/en/latest/userguide/tasks.html?highlight=retry#Task.retry_backoff
+    retry_backoff=True,
+    # https://docs.celeryq.dev/en/latest/userguide/tasks.html?highlight=retry#Task.max_retries
+    retry_jitter=True)
 def ahotu_uploader(batch):
     return upload_ultrasignup_data(batch)
 
@@ -102,14 +101,11 @@ def ahotu_parser(batch):
 
 @app.task(
     name='ahotu_uploader',
-    throws=(
-        httpcore.ReadTimeout,
-        httpx.ReadTimeout,
-    ),
     auto_retry_for=(
-        httpcore.ReadTimeout,
-        httpx.ReadTimeout),
+        Exception,
+    ),
     max_retries=3,
-    retry_backoff=True)
+    retry_backoff=True,
+    retry_jitter=True)
 def ahotu_uploader(batch):
     return upload_ahotu_data(batch)
