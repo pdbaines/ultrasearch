@@ -52,10 +52,11 @@ jobs:
 
       -
         name: deploy
-        uses: Azure/k8s-deploy@v3.1
+        uses: Azure/k8s-deploy@v4.2
         with:
           namespace: ultrasearch
           manifests: |
             .gitops
           images: pdbaines83/ultrasearch:${{ github.sha }}
+          action: deploy
           strategy: basic
